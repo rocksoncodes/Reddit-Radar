@@ -1,39 +1,64 @@
 # Reddit Radar
-`Spot problems and insights in niche Reddit communities automatically.`
 
-Reddit Radar is a lightweight AI agent that automates research on specific Reddit communities by finding niche pain points, validating them with an LLM and producing structured outputs for downstream storage (Notion, database, etc.). Perfect for entrepreneurs, developers or community managers looking to discover problems worth solving in highly focused Reddit niches.
+Reddit Radar is a backend service that helps identify real, recurring problems in niche Reddit communities by automatically ingesting discussions, analyzing sentiment, and validating problem relevance using an LLM.
 
-[![Python](https://img.shields.io/badge/python-3.11+-blue)](https://www.python.org/)
-[![Docs](https://img.shields.io/badge/docs-up--to--date-brightgreen?style=flat-square)](#)
+It is designed to support founders, developers, and researchers who want structured, actionable insights instead of manually scanning Reddit threads.
 
 
-# Key Ideas
+# Problem
+Manually researching niche Reddit communities to discover meaningful problems is time-consuming, inconsistent and difficult to scale.
 
-- Automatically collect posts and comments from configured niche subreddits.
-- Use an LLM (Gemini) to validate whether a discovered issue represents a meaningful market problem within the niche.
-- Produce structured outputs that can be saved to Notion or a database for later review and prioritization.
+High-signal insights are often buried across posts and comment threads, making it hard to:
+- Identify recurring pain points
+- Validate whether an issue represents a real market problem
+- Store and prioritize findings for later use
 
-# Current Features (Implemented)
 
-- OAuth-based Reddit integration for data ingestion
-- Basic Gemini AI integration (validation prompts)
-- Modular code structure with agents, services and pipelines
+# Solution
+Reddit Radar automates this workflow through a backend-first, modular architecture.
+
+The system:
+1. Ingests posts and comments from configured subreddits via Reddit’s API
+2. Processes and analyzes text using sentiment and filtering pipelines
+3. Uses an LLM (Gemini) to validate whether detected issues represent meaningful problems
+4. Produces structured outputs that can be stored in external systems (e.g. Notion, database)
+
+The project is designed as a set of composable services and pipelines, making it easy to extend or integrate with other tools.
+
+# Tech Stack
+- Python 3.11+
+- Reddit API (OAuth)
+- Gemini (Google LLM)
+- SQLAlchemy (data models)
+- Structured logging
+- Environment-based configuration
+  
+
+# Key Features
+- OAuth-based Reddit data ingestion
+- Modular agent and pipeline architecture
+- LLM-powered problem validation
 - Sentiment analysis and text processing helpers
-- Structured logging</br>
-<img width="1832" height="967" alt="image" src="https://github.com/user-attachments/assets/334da5c1-31af-4c92-85b0-3930b28cc464" />
+- Structured logging for observability
+- Designed for downstream storage (Notion / database)
 
 
-> Planned features are tracked in the roadmap and will be added over time.
+# Project Structure (High-Level)
+
+- `clients/` – Thin API clients (Reddit, Gemini)
+- `engines/` – Runnable entry points (ingestion, curation)
+- `services/` – Core business logic and integrations
+- `pipelines/` – Data processing and analysis pipelines
+- `database/` – SQLAlchemy models and DB setup
+- `utils/` – Shared helpers and utilities
 
 
-# Quick start
+# How to Run
 
 ### Prerequisites
-```bash
-Python 3.11+ (tested with 3.13)
-A Reddit app (client ID & secret)
-Gemini API key (Google LLM)
-```
+- Python 3.11+
+- Reddit API credentials
+- Gemini API key
 
 ### 1. Clone the repository
 
@@ -55,19 +80,6 @@ Gemini API key (Google LLM)
    cp .env.example .env
 ```
 
-Open `.env` and set the required keys (see Configuration below).
-
-### 4. Run the ingest agent (example)
-
-```bash
-   python engines\ingest_engine.py
-```
-
-Depending on the agent/engine you want to run, use the corresponding script under `engines/`.
-
-
-# Configuration (.env)
-
 The following environment variables are used by the project (add any others required by your integrations):
 
 ``` bash
@@ -84,16 +96,23 @@ Notes:
 Keep secrets out of version control. Use a secrets manager for production.
 ```
 
-# Project structure (Overview)
+### 4. Run the ingest agent (example)
 
-- clients/        thin API clients (Reddit, Gemini)
-- engines/        runnable scripts / entrypoints (reddit_ingest, curator)
-- services/       business logic and integrations (scrapers, storage)
-- pipelines/      data processing pipelines (sentiment, curator)
-- database/       SQLAlchemy models and DB initialization
-- utils/          shared helpers
+```bash
+   python engines\ingest_engine.py
+```
 
-# Development status
+Depending on the agent/engine you want to run, use the corresponding script under `engines/`.
+
+# What I Learned
+
+- Designing modular backend systems using services and pipelines
+- Structuring long-running data ingestion workflows
+- Safely integrating third-party APIs with OAuth and environment-based config
+- Using LLMs as part of a deterministic backend process
+- Building systems intended for extension, not one-off scripts
+
+# Development Status
 
 Branch: MSAA-05-Curator-Agent-Development
 
