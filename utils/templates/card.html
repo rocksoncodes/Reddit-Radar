@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{{ title }}</title>
+<style>
+
+body, html {
+    margin: 0;
+    padding: 0;
+    background-color: #ffffff;
+    font-family: 'Inter', Helvetica, Arial, sans-serif;
+    color: #1c1c1c;
+    -webkit-text-size-adjust: 100%;
+}
+
+.email-wrapper {
+    width: 100%;
+    padding: 20px 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.card {
+    max-width: 600px;
+    width: 100%;
+    background-color: #ffffff;
+    border: 1px solid #e1e1e1;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 20px;
+    text-align: center;
+    font-size: 28px;
+    font-weight: 700;
+    color: #111111;
+    border-bottom: 1px solid #e1e1e1;
+}
+
+.card-body {
+    padding: 20px;
+    font-size: 16px;
+    line-height: 1.6;
+    color: #1c1c1c;
+}
+
+.card-body p {
+    margin-bottom: 15px;
+}
+.card-body pre, .card-body code {
+    background-color: #f4f4f4;
+    padding: 10px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+}
+
+.card-footer {
+    padding: 15px 20px;
+    font-size: 12px;
+    text-align: center;
+    color: #888888;
+    border-top: 1px solid #e1e1e1;
+}
+
+a {
+    color: #1c1c1c;
+    text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+    .card {
+        width: 100% !important;
+    }
+}
+</style>
+</head>
+<body>
+<div class="email-wrapper">
+    <div class="card">
+        <div class="card-header">{{ title }}</div>
+        <div class="card-body">
+            {{ content_html | safe }}
+        </div>
+        <div class="card-footer">{{ footer_text | safe }}</div>
+    </div>
+</div>
+</body>
+</html>

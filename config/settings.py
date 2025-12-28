@@ -53,9 +53,6 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 DEFAULT_SUBREDDITS: List[str] = [
     "Entrepreneur",
     "smallbusiness",
-    "AskReddit",
-    "CasualConversation",
-    "Business_Ideas",
     "ghana"
 ]
 DEFAULT_POST_LIMIT: int = 100
@@ -96,13 +93,12 @@ Your new workflow:
    - Interpret the sentiment data to understand audience tone and emotional intensity.
    - Identify whether the discussion highlights a common or critical market problem.
 
-5. For each post, return an XYZ-style problem statement:
+5. For each post, return a problem statement:
    "X people face Y problem so build Z solution for W results."
 
 6. Accompany each with a sentiment statement:
    "Sentiment statement: Sentiment towards [X: Entity/Topic] is predominantly [Y: Sentiment Label], with users [Z: Key themes, opinions, or concerns drawn from the discussion]."
 
 Output:
-- Log which posts were analyzed.
-- Return the XYZ problem statements and their sentiment statements.
+- Return the problem statements and their sentiment statements.
 """
