@@ -84,10 +84,16 @@ Security note: keep these secrets out of version control and use a secure secret
 # How to run locally
 1. Create and activate a virtualenv
 
-```powershell
-python -m venv .venv
-.\.venv\Scripts\activate
-pip install -r requirements.txt
+``` bash
+REDDIT_CLIENT_ID       # Reddit API client ID
+REDDIT_CLIENT_SECRET   # Reddit API secret
+REDDIT_USER_AGENT      # Reddit API user agent string
+GEMINI_API_KEY         # Gemini / Google LLM API key
+NOTION_API_KEY         # Notion integration key
+NOTION_DB_ID           # Notion database id
+EMAIL_ADDRESS          # Your email address
+EMAIL_APP_PASSWORD     # Your email app password
+RECIPIENT_ADDRESS      # Recipient email address
 ```
 
 1. Copy environment file and edit
@@ -121,7 +127,17 @@ python engines\egress.py
 
 
 # Contributing
-Contributions welcome. Suggested improvements:
-- Harden Notion integration and make it optional at runtime
-- Add unit tests for pipelines and services
-- Add CLI or scheduler wrapper (cron / Windows Task Scheduler) for runs
+
+Contributions and PRs are welcome. Suggested ways to help:
+- Implement planned features from the roadmap
+- Improve data processing and validation prompts
+- Add tests and CI
+- Improve documentation and examples
+
+When opening a PR, include tests or a short demo showing the change.
+
+# Wiki
+
+If the README answers *what*, the wiki explains *how* and *why*.
+
+👉 https://github.com/rocksoncodes/Reddit-Problem-Discovery-Service/wiki
