@@ -1,4 +1,4 @@
-# Reddit Problem Discovery Service (Reddit-only)
+# Reddit PainPoint Discovery Service (Reddit-only)
 
 This repository implements a backend-first AI agent that discovers recurring problems and sentiment signals in niche Reddit communities. The project is intentionally focused on Reddit as the single input source; other platforms are out of scope for now.
 
@@ -32,8 +32,8 @@ Manual discovery of recurring, real-world problems across subreddits is slow and
 ### 4.2 Clone and install
 
 ```powershell
-git clone https://github.com/rocksoncodes/Problem-Discovery-Backend-Service.git
-cd Problem-Discovery-Backend-Service
+git clone https://github.com/rocksoncodes/Reddit-Painpoint-Service.git
+cd Reddit-Painpoint-Service
 python -m venv .venv
 .\.venv\Scripts\activate       
 pip install -r requirements.txt
