@@ -1,4 +1,4 @@
-# Reddit PainPoint Discovery Service (Reddit-only)
+# Reddit Painpoint Service
 
 This repository implements a backend-first AI agent that discovers recurring problems and sentiment signals in niche Reddit communities. The project is intentionally focused on Reddit as the single input source; other platforms are out of scope for now.
 
