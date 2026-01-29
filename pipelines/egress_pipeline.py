@@ -8,7 +8,7 @@ all_channels = settings.CHOICE_THREE
 
 
 def _send_by_channel(execute, choice):
-
+    """Decides which form method of output the systems uses to send its reports"""
     if choice in (notion_only, all_channels):
         execute.create_notion_page()
 
@@ -17,7 +17,7 @@ def _send_by_channel(execute, choice):
 
 
 def execute_egress_pipeline(choice):
-
+    """Pipeline responsible for executing the Egress methods in order"""
     try:
         logger.info("=== Starting Egress pipeline ===")
 

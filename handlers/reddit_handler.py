@@ -7,7 +7,6 @@ execute = RedditService()
 def scrape_reddit_data() -> Dict[str, List[Any]]:
 
     try:
-
         reddit_data = execute.run_reddit_scraper()
 
     except Exception as e:
@@ -20,7 +19,6 @@ def scrape_reddit_data() -> Dict[str, List[Any]]:
 def store_reddit_data(reddit_data: Dict[str, Any]) -> bool:
 
     try:
-
         execute.run_reddit_storage(reddit_data)
         return True
 

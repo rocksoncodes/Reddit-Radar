@@ -6,10 +6,7 @@ from utils.logger import logger
 _reddit_instance = None
 
 def _validate_reddit_secrets(reddit_secrets: dict) -> bool:
-    """
-    Validate presence of Reddit API environment variables.
-    Returns True if all secrets are found, otherwise False.
-    """
+
     missing_keys = []
     found_keys = []
 
@@ -32,9 +29,7 @@ def _validate_reddit_secrets(reddit_secrets: dict) -> bool:
 
 
 def _create_reddit_client() -> praw.Reddit | None:
-    """
-    Create a new Reddit client using PRAW and environment variables.
-    """
+
     load_dotenv()
 
     client_id = settings.REDDIT_CLIENT_ID
@@ -67,9 +62,7 @@ def _create_reddit_client() -> praw.Reddit | None:
 
 
 def get_reddit_client() -> praw.Reddit | None:
-    """
-    Singleton accessor to ensure only one Reddit client instance exists.
-    """
+
     global _reddit_instance
 
     if _reddit_instance is None:

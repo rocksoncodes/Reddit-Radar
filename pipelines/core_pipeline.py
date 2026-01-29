@@ -16,3 +16,5 @@ def execute_core_pipeline():
     except Exception as e:
         logger.error("Error executing curator pipeline:", exc_info=True)
         return {"error": str(e)}
+
+

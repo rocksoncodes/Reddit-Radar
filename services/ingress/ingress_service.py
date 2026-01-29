@@ -31,7 +31,6 @@ class IngressService:
             try:
                 subreddit_posts = list(self.reddit.subreddit(subreddit_name).hot(limit=self.post_limit))
                 logger.info(f"Retrieved {len(subreddit_posts)} posts from r/{subreddit_name}.")
-
                 for submission in subreddit_posts:
                     if (
                         submission.upvote_ratio >= self.min_upvote_ratio
@@ -115,3 +114,5 @@ class IngressService:
         self.comments = comments_collected
         logger.info(f"Completed. Total comments collected: {len(comments_collected)}")
         return comments_collected
+
+

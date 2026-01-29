@@ -5,12 +5,9 @@ from google.genai import types
 
 
 def initialize_gemini() -> genai.Client:
-    """
-    Initialize Gemini client using API key from environment variables.
-    Returns a genai.Client instance if successful, otherwise exits.
-    """
 
     api_key = settings.GEMINI_API_KEY
+
     if not api_key:
         logger.error("GEMINI_API_KEY not found in environment variables.")
         raise SystemExit("Startup failed: Please set your GEMINI_API_KEY to initialize the agent.")
@@ -26,10 +23,6 @@ def initialize_gemini() -> genai.Client:
 
     
 def provide_agent_tools(tools) -> types.GenerateContentConfig | None:
-    """
-    Provide tools to the agent by creating a GenerateContentConfig.
-    Returns the config if successful, otherwise None.
-    """
     try:
         config=types.GenerateContentConfig(tools=tools)
         logger.info(f"Agent tools configured successfully with {len(tools)} tool(s).")

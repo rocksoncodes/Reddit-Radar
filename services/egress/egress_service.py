@@ -18,6 +18,9 @@ TEMPLATE_DIR = CURRENT_DIR.parent.parent / "utils" / "templates"
 
 
 class EgressService:
+    """
+    Service class responsible for generating reports and emails
+    """
     def __init__(self):
         self.queried_brief = None
         self.formatted_email = None
@@ -30,7 +33,7 @@ class EgressService:
         self.notion_blocks = []
         self.session = get_session()
         self.title = "Reddit Problem & Sentiment Report"
-        self.footer_text = "©2025 Rocksoncodes. All rights reserved."
+        self.footer_text = "©2026 Rocksoncodes. All rights reserved."
 
         if not TEMPLATE_DIR.exists():
             raise RuntimeError(f"Template directory not found: {TEMPLATE_DIR}")
@@ -41,6 +44,7 @@ class EgressService:
         )
 
     def query_brief(self):
+        """Queries the database for AI processed briefs"""
         try:
             with self.session as session:
                 queried_brief = session.query(ProcessedBriefs).first()
@@ -134,7 +138,6 @@ class EgressService:
 
 
     def create_notion_page(self):
-
         try:
             self._chunk_text()
             notion_blocks = self._create_notion_blocks()
