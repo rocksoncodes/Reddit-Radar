@@ -1,12 +1,7 @@
 from apscheduler.schedulers.background import BlockingScheduler
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
-from pipelines.egress_pipeline import run_egress_pipeline
-from pipelines.core_pipeline import run_core_pipeline
-from pipelines.ingress_pipeline import run_ingress_pipeline
 from services.jobs_service import JobService
 from datetime import datetime, timedelta
-from database.models import Post, CuratedItem
-from database.session import get_session
 from utils.logger import logger
 from config import settings
 
