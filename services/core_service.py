@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 from google.genai import errors
 from config import settings
 from database.engine import database_engine
-from database.models import Post, Sentiment, ProcessedBriefs
+from database.models import Post, Sentiment, ProcessedBriefs, CuratedItem
 from database.session import get_session
 from clients.gemini_client import initialize_gemini, provide_agent_tools
 from utils.logger import logger
@@ -13,7 +13,8 @@ Session = sessionmaker(bind=database_engine)
 
 class CoreService:
     """
-    Service for querying posts with sentiments, executing the curator agent and storing agent responses.
+    Service for querying posts with sentiments, 
+    executing the curator agent and storing agent responses.
     """
 
     def __init__(self):
@@ -36,6 +37,7 @@ class CoreService:
         posts_with_sentiments = (
             session.query(Post, Sentiment)
             .join(Sentiment, Sentiment.post_id == Post.submission_id)
+            .filter(Post.is_curated == False)
             .limit(10)
             .all()
         )
@@ -118,16 +120,37 @@ class CoreService:
                     curated_content=self.curator_agent_response
                 )
                 session.add(curated_brief)
-                session.commit()
-                logger.info(
-                    "Curator response stored successfully in the database.")
+                
+                # Mark as curated and record for cleanup
+                post_ids = []
+                for record in self.post_with_sentiments:
+                    post_ids.append(record["post_number"])
+
+                if post_ids:
+                    posts = session.query(Post).filter(Post.id.in_(post_ids)).all()
+
+                    submission_ids = []
+                    for post in posts:
+                        submission_ids.append(post.submission_id)
+
+                    session.query(Post).filter(Post.id.in_(post_ids)).update({"is_curated": True}, synchronize_session=False)
+
+                    session.query(Sentiment).filter(Sentiment.post_id.in_(submission_ids)).update({"is_curated": True}, synchronize_session=False)
+
+                    for sub_id in submission_ids:
+                        curated_item = CuratedItem(submission_id=sub_id)
+                        session.merge(curated_item)
+
+                    session.commit()
+                    logger.info(
+                        "Curator response stored and items marked as curated.")
             else:
                 logger.warning("Curated content is None. Skipping DB insert.")
 
         except Exception as e:
             session.rollback()
             logger.error(
-                f"Failed to store curator response: {e}", exc_info=True)
+                f"Failed to store curator response and update curation status: {e}", exc_info=True)
 
         finally:
             session.close()

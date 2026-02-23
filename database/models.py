@@ -16,6 +16,7 @@ class Post(Base):
     number_of_comments = Column(Integer)
     post_url = Column(Text)
     is_processed = Column(Boolean, default=False)
+    is_curated = Column(Boolean, default=False)
 
     comments = relationship(
         "Comment", back_populates="post", cascade="all, delete-orphan")
@@ -28,7 +29,7 @@ class Comment(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     submission_id = Column(String(20), ForeignKey(
-        "posts.submission_id"), nullable=False)
+        "posts.submission_id", ondelete="CASCADE"), nullable=False)
     subreddit = Column(String(100), nullable=False)
     title = Column(Text, nullable=False)
     author = Column(String(255))
@@ -43,8 +44,9 @@ class Sentiment(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     post_id = Column(String(20), ForeignKey(
-        "posts.submission_id"), nullable=False)
+        "posts.submission_id", ondelete="CASCADE"), nullable=False)
     sentiment_results = Column(JSON, nullable=False)
+    is_curated = Column(Boolean, default=False)
 
     post = relationship("Post", back_populates="sentiments")
 
@@ -54,3 +56,11 @@ class ProcessedBriefs(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     curated_content = Column(Text, nullable=False)
+
+
+class CuratedItem(Base):
+    __tablename__ = "curated_items"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    submission_id = Column(String(20), nullable=False, unique=True)
+    scheduled_deletion = Column(Boolean, default=False)
