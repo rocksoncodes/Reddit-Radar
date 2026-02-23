@@ -1,14 +1,13 @@
 from typing import Dict, List
-from sqlalchemy.orm import sessionmaker
 from google.genai import errors
 from config import settings
-from database.engine import database_engine
-from database.models import Post, Sentiment, ProcessedBriefs, CuratedItem
+from database.models import Post, Sentiment
 from database.session import get_session
 from clients.gemini_client import initialize_gemini, provide_agent_tools
+from repositories.post_repository import PostRepository
+from repositories.sentiment_repository import SentimentRepository
+from repositories.brief_repository import BriefRepository
 from utils.logger import logger
-
-Session = sessionmaker(bind=database_engine)
 
 
 class CoreService:
@@ -19,6 +18,9 @@ class CoreService:
 
     def __init__(self):
         self.session = get_session()
+        self.post_repo = PostRepository(self.session)
+        self.sentiment_repo = SentimentRepository(self.session)
+        self.brief_repo = BriefRepository(self.session)
         self.agent = initialize_gemini()
         self.post_with_sentiments = []
         self.curator_agent_response = None
@@ -29,20 +31,13 @@ class CoreService:
         Each record in the returned list contains a post and its sentiment score.
         Use this information to guide your next actions, generate summaries, or perform analysis as required.
         """
-        session = self.session
         post_records = []
 
         logger.info("Querying posts with sentiments from the database...")
 
-        posts_with_sentiments = (
-            session.query(Post, Sentiment)
-            .join(Sentiment, Sentiment.post_id == Post.submission_id)
-            .filter(Post.is_curated == False)
-            .limit(10)
-            .all()
-        )
-
         try:
+            posts_with_sentiments = self.post_repo.get_posts_with_sentiments(limit=10)
+
             for post, sentiment in posts_with_sentiments:
                 post_with_sentiments = {
                     "post_number": post.id,
@@ -104,8 +99,6 @@ class CoreService:
         """
         Store the curator agent's response in the ProcessedBriefs table in the database.
         """
-        session = self.session
-
         if not self.curator_agent_response:
             logger.info("No curator agent response found. Running agent...")
             try:
@@ -116,10 +109,7 @@ class CoreService:
 
         try:
             if self.curator_agent_response is not None:
-                curated_brief = ProcessedBriefs(
-                    curated_content=self.curator_agent_response
-                )
-                session.add(curated_brief)
+                self.brief_repo.create_brief(self.curator_agent_response)
                 
                 # Mark as curated and record for cleanup
                 post_ids = []
@@ -127,30 +117,27 @@ class CoreService:
                     post_ids.append(record["post_number"])
 
                 if post_ids:
-                    posts = session.query(Post).filter(Post.id.in_(post_ids)).all()
+                    posts = self.post_repo.get_posts_by_ids(post_ids)
 
-                    submission_ids = []
-                    for post in posts:
-                        submission_ids.append(post.submission_id)
+                    submission_ids = [post.submission_id for post in posts]
 
-                    session.query(Post).filter(Post.id.in_(post_ids)).update({"is_curated": True}, synchronize_session=False)
-
-                    session.query(Sentiment).filter(Sentiment.post_id.in_(submission_ids)).update({"is_curated": True}, synchronize_session=False)
+                    self.post_repo.mark_as_curated(post_ids)
+                    self.sentiment_repo.mark_as_curated(submission_ids)
 
                     for sub_id in submission_ids:
-                        curated_item = CuratedItem(submission_id=sub_id)
-                        session.merge(curated_item)
+                        self.post_repo.add_curated_item(sub_id)
 
-                    session.commit()
+                    self.session.commit()
                     logger.info(
                         "Curator response stored and items marked as curated.")
             else:
                 logger.warning("Curated content is None. Skipping DB insert.")
 
         except Exception as e:
-            session.rollback()
+            self.session.rollback()
             logger.error(
                 f"Failed to store curator response and update curation status: {e}", exc_info=True)
 
         finally:
-            session.close()
+            self.session.close()
+

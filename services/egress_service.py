@@ -12,10 +12,10 @@ from database.models import ProcessedBriefs
 from utils.logger import logger
 from config import settings
 
-Session = sessionmaker(bind=database_engine)
-CURRENT_DIR = Path(__file__).resolve().parent
-TEMPLATE_DIR = CURRENT_DIR.parent.parent / "utils" / "templates"
+from repositories.brief_repository import BriefRepository
 
+BASE_DIR = Path(__file__).resolve().parents[1] 
+TEMPLATE_DIR = BASE_DIR / "utils" / "templates"
 
 class EgressService:
     """
@@ -33,6 +33,7 @@ class EgressService:
         self.notion_client = Client(auth=self.notion_key)
         self.notion_blocks = []
         self.session = get_session()
+        self.brief_repo = BriefRepository(self.session)
         self.title = "Reddit Problem & Sentiment Report"
         self.footer_text = "©2026 Rocksoncodes. All rights reserved."
 
@@ -44,6 +45,7 @@ class EgressService:
             autoescape=select_autoescape(["html"])
         )
 
+
     def query_brief(self):
         """
         Query the database for the first AI processed brief.
@@ -51,26 +53,26 @@ class EgressService:
             dict or None: Queried brief data or None if not found or error occurs.
         """
         try:
-            with self.session as session:
-                queried_brief = session.query(ProcessedBriefs).first()
+            queried_brief = self.brief_repo.get_latest_brief()
 
-                if not queried_brief:
-                    raise ValueError("No briefs found in the database.")
+            if not queried_brief:
+                raise ValueError("No briefs found in the database.")
 
-                query_result = {
-                    "id": queried_brief.id,
-                    "curated_content": queried_brief.curated_content
-                }
+            query_result = {
+                "id": queried_brief.id,
+                "curated_content": queried_brief.curated_content
+            }
 
-                logger.info(
-                    f"Successfully queried brief ID {queried_brief.id} from the database.")
-                self.queried_brief = query_result
-                return query_result
+            logger.info(
+                f"Successfully queried brief ID {queried_brief.id} from the database.")
+            self.queried_brief = query_result
+            return query_result
 
         except Exception as e:
             logger.error(
                 f"Error querying briefs from the database: {e}", exc_info=True)
             return None
+
 
     def _chunk_text(self):
         """

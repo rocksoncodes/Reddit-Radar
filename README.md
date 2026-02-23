@@ -10,14 +10,14 @@ Quick summary
 Collect posts and comments exclusively from configured subreddits.
 
 # 1. Why Reddit-only?
-Focusing on one platform keeps ingestion, privacy and evaluation requirements simple and makes prompts and data pipelines more effective for the conversational structure Reddit provides (posts + nested comments). If you later want other platforms, add an input client and a matching ingress service.
+Focusing on one platform keeps ingestion, privacy and evaluation requirements simple and makes prompts and data controllers more effective for the conversational structure Reddit provides (posts + nested comments). If you later want other platforms, add an input client and a matching ingress service.
 
 # 2. Problem
 Manual discovery of recurring, real-world problems across subreddits is slow and noisy. This service automates discovery, validation, and packaging of those findings so teams can act faster.
 
 # 3. Solution
 - Periodic collection of posts and comments from configured subreddits
-- Processing pipelines to filter, summarize and analyze sentiment
+- Architecture centered around controllers to orchestrate data flow
 - LLM-based (Gemini) checks to validate whether a detected issue is a meaningful, recurring problem
 - Outputs: curated briefs persisted to the local DB and optionally exported (email / Notion)
 
@@ -46,42 +46,44 @@ copy .env.example .env
 ```
 
 ### 4.3 Run the Scheduler
-The system is designed to run periodically. The main entry point is `agent.py`, which uses APScheduler to run the full pipeline sequence every 2 weeks.
+The system is designed to run periodically. The main entry point is `agent.py`, which uses APScheduler to run the full controller sequence every 2 weeks.
 
 ```cmd
 python agent.py
 ```
 
-You can also run individual pipelines for testing:
+You can also run controllers manually for testing:
 ```cmd
-python -c "from pipelines.ingress_pipeline import run_ingress_pipeline; run_ingress_pipeline()"
-python -c "from pipelines.core_pipeline import run_core_pipeline; run_core_pipeline()"
-python -c "from pipelines.egress_pipeline import run_egress_pipeline; from config import settings; run_egress_pipeline(settings.CHOICE_THREE)"
+python main.py
 ```
 
 # 5. Project organization
 This codebase is organized into Input, Process, and Output layers.
 
 - **Main Entry Point**
-  - `agent.py`: The background scheduler that orchestrates all pipelines.
+  - `agent.py`: The background scheduler that orchestrates all jobs.
+  - `main.py`: Manual entry point to run the full sequence.
 
-- **Input (Clients + Ingress)**
+- **Controllers (Orchestration)**
+  - `controllers/ingress_controller.py`: Orchestrates the ingestion flow.
+  - `controllers/sentiment_controller.py`: Processes sentiment for collected data.
+  - `controllers/core_controller.py`: Orchestrates the agentic reasoning flow.
+  - `controllers/egress_controller.py`: Orchestrates the export flow.
+
+- **Input & Scaping**
   - `clients/reddit_client.py`: Reddit API adapter.
   - `services/ingress_service.py`: Reddit-specific data collection logic.
   - `handlers/reddit_handler.py`: High-level handlers for Reddit data.
-  - `pipelines/ingress_pipeline.py`: Orchestrates the ingestion flow.
 
-- **Process (Pipelines + Core Services)**
-  - `pipelines/core_pipeline.py`: Orchestrates the agentic reasoning flow.
-  - `pipelines/sentiment_pipeline.py`: Processes sentiment for collected data.
+- **Process (Business Logic)**
   - `services/core_service.py`: Business logic for the Curator Agent (Gemini).
   - `services/sentiment_service.py`: Sentiment analysis logic.
 
 - **Output (Egress / Storage)**
   - `services/egress_service.py`: Exporters (Email, Notion).
   - `services/storage_service.py`: Database interaction logic.
-  - `pipelines/egress_pipeline.py`: Orchestrates the export flow.
   - `database/`: SQLAlchemy models and persistence.
+
 
 - **Utilities & Config**
   - `config/settings.py`: System settings and environment variable mapping.

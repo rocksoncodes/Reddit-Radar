@@ -1,5 +1,5 @@
-from ingress_service import IngressService
-from storage_service import StorageService
+from services.ingress_service import IngressService
+from services.storage_service import StorageService
 from typing import Dict, Any
 from utils.logger import logger
 

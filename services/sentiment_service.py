@@ -1,15 +1,12 @@
 import nltk
-from sqlalchemy.orm import sessionmaker
-from database.engine import database_engine
-from database.models import Post, Sentiment
+from repositories.post_repository import PostRepository
+from repositories.sentiment_repository import SentimentRepository
 from typing import Dict, List
 from utils.helpers import serialize_post, get_comments_for_post
 from nltk.sentiment import SentimentIntensityAnalyzer
 from database.session import get_session
 from collections import Counter
 from utils.logger import logger
-
-Session = sessionmaker(bind=database_engine)
 
 
 class SentimentService:
@@ -20,6 +17,8 @@ class SentimentService:
     def __init__(self):
         self.ensure_nltk_resources()
         self.session = get_session()
+        self.post_repo = PostRepository(self.session)
+        self.sentiment_repo = SentimentRepository(self.session)
         self.sia = SentimentIntensityAnalyzer()
         self.query_results: List[Dict] = []
         self.post_sentiment_scores: List[List[Dict]] = []
@@ -42,18 +41,17 @@ class SentimentService:
         Returns:
             List[Dict]: List of posts with associated comments.
         """
-        session = self.session
         post_records = []
 
         logger.info("Querying posts with comments from the database...")
 
         try:
-            posts = session.query(Post).all()
+            posts = self.post_repo.get_all_posts()
             total_comments = 0
 
             for post in posts:
                 comment_records, comment_count = get_comments_for_post(
-                    session, post.submission_id)
+                    self.session, post.submission_id)
                 total_comments += comment_count
 
                 post_records.append(serialize_post(post, comment_records))
@@ -72,7 +70,7 @@ class SentimentService:
             return []
 
         finally:
-            session.close()
+            self.session.close()
 
     def analyze_post_sentiment(self):
         """
@@ -190,7 +188,6 @@ class SentimentService:
         """
         Store sentiment summaries for posts in the database.
         """
-        session = self.session
         sentiments = self.post_sentiment_summaries
 
         if not sentiments:
@@ -204,21 +201,25 @@ class SentimentService:
         try:
             logger.info("Storing post(s) sentiments in the database...")
 
+            sentiments_to_store = []
             for post_sentiment_summary in sentiments:
                 post_key = post_sentiment_summary.get("post_key")
                 post_sentiment = post_sentiment_summary.get(
                     "sentiment_summary")
+                
+                sentiments_to_store.append({
+                    "post_id": post_key,
+                    "sentiment_results": post_sentiment
+                })
 
-                results = Sentiment(
-                    post_id=post_key,
-                    sentiment_results=post_sentiment
-                )
-
-                session.add(results)
-            session.commit()
+            self.sentiment_repo.create_sentiments(sentiments_to_store)
+            self.session.commit()
 
             logger.info("Sentiment Storage Complete.")
 
         except Exception as e:
             logger.error(f"Error storing post sentiment(s) {e}", exc_info=True)
-            session.rollback()
+            self.session.rollback()
+        finally:
+            self.session.close()
+
