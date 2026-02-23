@@ -1,139 +1,168 @@
 # Reddit Painpoint Service
 
-This repository implements a backend-first AI agent that discovers recurring problems and sentiment signals in niche Reddit communities. The project is intentionally focused on Reddit as the single input source; other platforms are out of scope for now.
+A backend-first AI agent that discovers recurring problems and sentiment signals in niche Reddit communities.
 
-Quick summary
-- Input: Reddit posts & comments (via Reddit API)
-- Process: Text cleaning, heuristic filtering, sentiment scoring, LLM-based validation (Gemini)
-- Output: Structured problem briefs persisted to the local database and optional exporters (email, Notion)
+- **Input:** Reddit posts & comments (via Reddit API)
+- **Process:** Text cleaning, heuristic filtering, sentiment scoring, LLM validation (Gemini)
+- **Output:** Curated problem briefs persisted to the database and optionally exported (Email, Notion)
 
-Collect posts and comments exclusively from configured subreddits.
+## 1. Why Reddit-only?
 
-# 1. Why Reddit-only?
-Focusing on one platform keeps ingestion, privacy and evaluation requirements simple and makes prompts and data controllers more effective for the conversational structure Reddit provides (posts + nested comments). If you later want other platforms, add an input client and a matching ingress service.
+Focusing on one platform keeps ingestion, privacy and evaluation requirements simple. Reddit's conversational structure (posts + nested comments) is well-suited to surfacing recurring, real-world problems. Other platforms can be added later by creating a new input client and matching ingress service.
 
-# 2. Problem
-Manual discovery of recurring, real-world problems across subreddits is slow and noisy. This service automates discovery, validation, and packaging of those findings so teams can act faster.
 
-# 3. Solution
+## 2. Problem
+
+Manual discovery of recurring real-world problems across subreddits is slow and noisy. This service automates discovery, validation, and packaging of those findings so teams can act faster.
+
+
+## 3. Solution
+
 - Periodic collection of posts and comments from configured subreddits
-- Architecture centered around controllers to orchestrate data flow
-- LLM-based (Gemini) checks to validate whether a detected issue is a meaningful, recurring problem
-- Outputs: curated briefs persisted to the local DB and optionally exported (email / Notion)
+- Sentiment analysis on collected data to validate signal strength
+- LLM-based curation (Gemini) to produce structured problem briefs
+- Secrets managed dynamically from [Infisical](https://infisical.com) at runtime
+- Output: curated briefs persisted to the database and optionally exported (Email / Notion)
 
-# 4. Quick start
 
-### 4.1 Prerequisites
+## 4. Quick Start
+
+### Prerequisites
+
 - Python 3.11+ (tested with 3.13)
 - A Reddit app (client ID & secret)
-- Optional: Gemini (Google LLM) API key
-- Recommended: create a virtual environment
+- A Gemini API key (Google LLM)
+- An [Infisical](https://infisical.com) project with secrets configured
+- Optional: Notion integration + Email credentials
 
-### 4.2 Clone and install
+### Install
 
 ```powershell
-git clone https://github.com/rocksoncodes/Reddit-Painpoint-Service.git
-cd Reddit-Painpoint-Service
-python -m venv .venv
-.\.venv\Scripts\activate       
-pip install -r requirements.txt
+  git clone https://github.com/rocksoncodes/Reddit-Painpoint-Service.git
+  cd Reddit-Painpoint-Service
+  python -m venv .venv
+  .\.venv\Scripts\activate
+  pip install -r requirements.txt
 ```
 
-Copy environment template:
+Copy the environment template:
 
 ```cmd
 copy .env.example .env
 ```
 
-### 4.3 Run the Scheduler
-The system is designed to run periodically. The main entry point is `agent.py`, which uses APScheduler to run the full controller sequence every 2 weeks.
+### Configure `.env`
+
+The `.env` file only needs the Infisical credentials. All other secrets are loaded from Infisical at runtime:
+
+```env
+INFISICAL_CLIENT_ID=your_client_id
+INFISICAL_CLIENT_SECRET=your_client_secret
+INFISICAL_PROJECT_ID=your_project_id
+```
+
+### Run
+
+Run the background scheduler (every 2 weeks):
 
 ```cmd
 python agent.py
 ```
 
-You can also run controllers manually for testing:
+Run the full pipeline once manually:
+
 ```cmd
 python main.py
 ```
 
-# 5. Project organization
-This codebase is organized into Input, Process, and Output layers.
+## 5. Project Structure
 
-- **Main Entry Point**
-  - `agent.py`: The background scheduler that orchestrates all jobs.
-  - `main.py`: Manual entry point to run the full sequence.
-
-- **Controllers (Orchestration)**
-  - `controllers/ingress_controller.py`: Orchestrates the ingestion flow.
-  - `controllers/sentiment_controller.py`: Processes sentiment for collected data.
-  - `controllers/core_controller.py`: Orchestrates the agentic reasoning flow.
-  - `controllers/egress_controller.py`: Orchestrates the export flow.
-
-- **Input & Scaping**
-  - `clients/reddit_client.py`: Reddit API adapter.
-  - `services/ingress_service.py`: Reddit-specific data collection logic.
-  - `handlers/reddit_handler.py`: High-level handlers for Reddit data.
-
-- **Process (Business Logic)**
-  - `services/core_service.py`: Business logic for the Curator Agent (Gemini).
-  - `services/sentiment_service.py`: Sentiment analysis logic.
-
-- **Output (Egress / Storage)**
-  - `services/egress_service.py`: Exporters (Email, Notion).
-  - `services/storage_service.py`: Database interaction logic.
-  - `database/`: SQLAlchemy models and persistence.
-
-
-- **Utilities & Config**
-  - `config/settings.py`: System settings and environment variable mapping.
-  - `utils/`: Shared helpers (logger, templates).
-
-# 6. Environment variables
-The following environment variables are used by the project (add any others required by your integrations).
-
-```cmd
-REDDIT_CLIENT_ID
-REDDIT_CLIENT_SECRET
-REDDIT_USER_AGENT
-GEMINI_API_KEY         
-NOTION_API_KEY         # optional (Notion sync)
-NOTION_DB_ID           # optional
-EMAIL_ADDRESS
-EMAIL_APP_PASSWORD
-RECIPIENT_ADDRESS
+```
+Reddit-PainPoint-Service/
+├── agent.py                    # Background scheduler (APScheduler)
+├── main.py                     # Manual entry point
+│
+├── orchestrators/              # Coordinate the data flow between services
+│   ├── ingress_orchestrator.py
+│   ├── sentiment_orchestrator.py
+│   ├── core_orchestrator.py
+│   └── egress_orchestrator.py
+│
+├── services/                   # Business logic
+│   ├── infisical_service.py    # Runtime secrets loading from Infisical
+│   ├── ingress_service.py      # Reddit data collection
+│   ├── reddit_service.py       # Reddit API interactions
+│   ├── sentiment_service.py    # Sentiment analysis
+│   ├── core_service.py         # Curator Agent (Gemini)
+│   ├── storage_service.py      # Database interaction
+│   └── egress_service.py       # Email & Notion exporters
+│
+├── repositories/               # Data access layer (SQLAlchemy)
+│   ├── post_repository.py
+│   ├── comment_repository.py
+│   ├── sentiment_repository.py
+│   └── brief_repository.py
+│
+├── clients/                    # External API adapters
+│   ├── reddit_client.py
+│   └── gemini_client.py
+│
+├── handlers/                   # High-level handlers
+│   └── reddit_handler.py
+│
+├── database/                   # Models and DB initialization
+│   └── models.py
+│
+├── config/
+│   └── settings.py             # Settings & env variable mapping
+│
+└── utils/
+    ├── logger.py               # Shared logger
+    └── helpers.py
 ```
 
-Keep secrets out of version control. Use a secrets manager for production.
+## 6. Secrets Management
+
+Secrets are loaded dynamically at startup using `InfisicalSecretsService`. When the app initializes, `config/settings.py` authenticates with Infisical and injects all project secrets into the environment before any constants are resolved.
+
+The following secrets should be configured in your Infisical project:
+
+| Secret | Description |
+|---|---|
+| `REDDIT_CLIENT_ID` | Reddit app client ID |
+| `REDDIT_CLIENT_SECRET` | Reddit app client secret |
+| `REDDIT_USER_AGENT` | Reddit API user agent string |
+| `GEMINI_API_KEY` | Google Gemini API key |
+| `NOTION_API_KEY` | Notion integration token *(optional)* |
+| `NOTION_DB_ID` | Notion database ID *(optional)* |
+| `EMAIL_ADDRESS` | Sender email address |
+| `EMAIL_APP_PASSWORD` | Email app password |
+| `RECIPIENT_ADDRESS` | Report recipient email |
+| `DATABASE_URL` | SQLAlchemy database connection URL |
 
 
-# 7. How the system thinks (short)
-1. Input: collect posts + comments from selected subreddits via Reddit OAuth
-2. Process: normalize text, filter noise, run sentiment & heuristic checks, produce candidates
-3. Validate: run structured LLM prompts (Gemini) + deterministic rules to confirm if a candidate is a real problem
-4. Output: persist validated briefs and export to configured sinks
+## 7. How it Works
 
+1. **Ingress** — Collect posts + comments from configured subreddits via Reddit OAuth
+2. **Sentiment** — Normalize text, filter noise, run VADER sentiment scoring
+3. **Curation** — Run structured Gemini prompts to identify and package real, recurring problems
+4. **Egress** — Persist validated briefs to the DB and export to configured sinks (Notion / Email)
 
-# 8. Development status
-- Branch: MSAA-05-Curator-Agent-Development (current)
-- ✅ Project skeleton and core modules
-- ✅ Reddit ingestion and basic data collection
-- ✅ Gemini integration for evaluation
+## 8. Development Status
+
+- ✅ Reddit ingestion and data collection
+- ✅ Sentiment analysis pipeline
+- ✅ Gemini-based Curator Agent
 - ✅ Notion sync and email notifications
+- ✅ Repository pattern (data access layer)
+- ✅ Dynamic secrets loading via Infisical
 
-# 9. Contributing
-Contributions and PRs are welcome. Suggested ways to help:
-- Improve signal quality and filtering
-- Improve processing and validation prompts
-- Add tests and examples for new features
+## 9. Notes & Limitations
 
-When opening a PR, include tests or a short demo showing the change.
+- Backend infrastructure only — no UI
+- Focused exclusively on Reddit as a data source
+- LLM inference costs apply depending on Gemini usage tier
 
-# 10. Notes & limitations
-- This is backend infrastructure, not a UI
-- Focused exclusively on Reddit as a source
-- LLM costs may apply depending on usage
+## 10. Project Wiki
 
-
-# 11. Project Wiki
-See `project wiki/Home.md` for extended rationale, architecture notes and running notes.
+See [`project wiki/Home.md`](project%20wiki/Home.md) for extended rationale, architecture notes, and running notes.
