@@ -27,3 +27,15 @@ class CommentRepository:
             self.session.add(comment)
             count += 1
         return count
+
+
+    def store_comments(self, reddit_data: dict) -> int:
+        """
+        Extract and persist comments from raw Reddit data.
+        Args:
+            reddit_data (dict): Raw Reddit data containing a 'comments' list.
+        Returns:
+            int: Number of comments stored.
+        """
+        comments_to_store = reddit_data.get("comments", [])
+        return self.create_comments(comments_to_store)

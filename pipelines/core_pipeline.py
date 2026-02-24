@@ -1,9 +1,9 @@
 from services.core_service import CoreService
 from utils.logger import logger
 
-class CoreOrchestrator:
+class CorePipeline:
     """
-    Controller responsible for orchestrating the AI curation process.
+    Pipeline responsible for co-ordinating the AI curation process.
     """
     def __init__(self):
         self.service = CoreService()
@@ -14,17 +14,17 @@ class CoreOrchestrator:
         Executes the core curation pipeline: execute agent and store response.
         """
         try:
-            logger.info("=== Starting Core Curation process ===")
-            
+            logger.info("=== Starting Core Curation pipeline ===")
+
             logger.info("Executing curator agent...")
             self.service.execute_curator_agent()
-            
+
             logger.info("Storing curator response...")
             self.service.store_curator_response()
-            
-            logger.info("=== Core Curation process completed successfully ===")
+
+            logger.info("=== Core Curation pipeline completed successfully ===")
             return True
 
         except Exception as e:
-            logger.error(f"Error executing Core Curation process: {e}", exc_info=True)
+            logger.error(f"Error executing Core Curation pipeline: {e}", exc_info=True)
             return {"error": str(e)}

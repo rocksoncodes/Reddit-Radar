@@ -1,6 +1,10 @@
-from services.ingress_service import IngressService
-from services.storage_service import StorageService
 from typing import Dict, Any
+from settings import settings
+from database.session import get_session
+from repositories.post_repository import PostRepository
+from repositories.comment_repository import CommentRepository
+from services.ingress_service import IngressService
+from utils.helpers import ensure_data_integrity
 from utils.logger import logger
 
 
@@ -11,7 +15,6 @@ class RedditService:
 
     def __init__(self):
         self.scraper = IngressService()
-        self.storage = StorageService()
 
     def run_reddit_scraper(self) -> Dict[str, Any]:
         """
@@ -51,26 +54,39 @@ class RedditService:
 
     def run_reddit_storage(self, reddit_data: Dict):
         """
-        Store Reddit posts and comments using the storage service.
+        Store Reddit posts and comments using the respective repositories.
         Args:
             reddit_data (Dict): Dictionary containing posts and comments to store.
         """
         logger.info("=== Starting Reddit storage pipeline ===")
-        logger.info("[PIPELINE] Step 1/2: Storing posts")
+
+        session = get_session()
+        post_repo = PostRepository(session)
+        comment_repo = CommentRepository(session)
+
         try:
-            self.storage.store_posts(reddit_data)
+            logger.info("[PIPELINE] Step 1/2: Storing posts")
+            validated_ids = ensure_data_integrity(session, reddit_data)
+            stored_posts = post_repo.store_posts(reddit_data, validated_ids)
+            session.commit()
+            logger.info(f"Stored {stored_posts} posts.")
 
         except Exception as e:
-            logger.error(
-                f"Unexpected error while storing posts: {e}", exc_info=True)
+            session.rollback()
+            logger.error(f"Unexpected error while storing posts: {e}", exc_info=True)
             return
 
-        logger.info("[PIPELINE] Step 2/2: Storing comments")
         try:
-            self.storage.store_comments(reddit_data)
+            logger.info("[PIPELINE] Step 2/2: Storing comments")
+            stored_comments = comment_repo.store_comments(reddit_data)
+            session.commit()
+            logger.info(f"Stored {stored_comments} comments.")
 
         except Exception as e:
-            logger.error(
-                f"Unexpected error while storing comments: {e}", exc_info=True)
+            session.rollback()
+            logger.error(f"Unexpected error while storing comments: {e}", exc_info=True)
+
+        finally:
+            session.close()
 
         logger.info("=== Reddit storage pipeline completed ===")

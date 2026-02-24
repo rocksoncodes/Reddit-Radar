@@ -1,6 +1,6 @@
 import praw
 from dotenv import load_dotenv
-from config import settings
+from settings import settings
 from utils.logger import logger
 
 _reddit_instance = None

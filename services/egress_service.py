@@ -1,5 +1,4 @@
 import smtplib
-import markdown2
 from pathlib import Path
 from email.message import EmailMessage
 from smtplib import SMTPAuthenticationError, SMTPConnectError
@@ -7,11 +6,12 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from notion_client import APIErrorCode, APIResponseError, Client
 from database.session import get_session
 from utils.logger import logger
-from config import settings
+from utils.helpers import chunk_text, create_notion_blocks, format_email
+from settings import settings
 
 from repositories.brief_repository import BriefRepository
 
-BASE_DIR = Path(__file__).resolve().parents[1] 
+BASE_DIR = Path(__file__).resolve().parents[1]
 TEMPLATE_DIR = BASE_DIR / "utils" / "templates"
 
 class EgressService:
@@ -71,95 +71,31 @@ class EgressService:
             return None
 
 
-    def _chunk_text(self):
-        """
-        Chunk the curated content of the queried brief into blocks for Notion API limits.
-        Returns:
-            list: List of text blocks.
-        """
-        if not self.queried_brief:
-            self.query_brief()
-            if not self.queried_brief:
-                logger.error("No brief available to chunk.")
-                return []
-
-        chunk_text = self.queried_brief.get("curated_content", "")
-        total_characters = len(chunk_text)
-        logger.info(f"Total characters in the text: {total_characters}")
-
-        max_block_size = 2000
-        blocks = []
-
-        try:
-            if total_characters > max_block_size:
-                full_blocks = total_characters // max_block_size
-                remainder = total_characters % max_block_size
-
-                for i in range(full_blocks):
-                    start_index = i * max_block_size
-                    end_index = start_index + max_block_size
-                    block = chunk_text[start_index:end_index]
-                    blocks.append(block)
-
-                if remainder > 0:
-                    blocks.append(chunk_text[-remainder:])
-            else:
-                blocks.append(chunk_text)
-
-            logger.info(f"Total blocks created: {len(blocks)}")
-            for idx, block in enumerate(blocks):
-                logger.debug(f"Block {idx + 1} length: {len(block)}")
-
-            self.notion_blocks = blocks
-            return blocks
-
-        except Exception as e:
-            logger.error(f"Error while chunking text: {e}", exc_info=True)
-            return []
-
-    def _create_notion_blocks(self):
-        """
-        Create Notion paragraph blocks from chunked text for page creation.
-        Returns:
-            list: List of Notion block dictionaries.
-        """
-        SAFE_MAX = 1950
-        notion_blocks = []
-
-        try:
-            for block in self.notion_blocks:
-                start = 0
-                while start < len(block):
-                    chunk = block[start:start + SAFE_MAX]
-                    paragraph_block = {
-                        "object": "block",
-                        "type": "paragraph",
-                        "paragraph": {
-                            "rich_text": [{"type": "text", "text": {"content": chunk}}]
-                        }
-                    }
-                    notion_blocks.append(paragraph_block)
-                    start += SAFE_MAX
-
-            logger.info(f"Created {len(notion_blocks)} Notion blocks.")
-            return notion_blocks
-
-        except Exception as e:
-            logger.error(f"Error creating Notion blocks: {e}", exc_info=True)
-            return []
-
     def create_notion_page(self):
         """
         Create a Notion page with the chunked and formatted content blocks.
         """
-        try:
-            self._chunk_text()
-            notion_blocks = self._create_notion_blocks()
-            if not notion_blocks:
-                logger.warning(
-                    "No Notion blocks to publish. Aborting page creation...")
+        if not self.queried_brief:
+            self.query_brief()
+            if not self.queried_brief:
+                logger.error("No brief available. Aborting Notion page creation.")
                 return
 
+        content = self.queried_brief.get("curated_content", "")
+        text_blocks = chunk_text(content)
+
+        if not text_blocks:
+            logger.warning("No Notion blocks to publish. Aborting page creation...")
+            return
+
+        notion_blocks = create_notion_blocks(text_blocks)
+        self.notion_blocks = notion_blocks
+
+        if not notion_blocks:
+            logger.warning("No Notion blocks to publish. Aborting page creation...")
+            return
+
+        try:
             children_blocks = [
                 {
                     "object": "block",
@@ -197,45 +133,27 @@ class EgressService:
             logger.error(
                 f"Unexpected error creating Notion page: {e}", exc_info=True)
 
-    def _format_email(self):
-        """
-        Format the queried brief's content as an HTML email using Jinja2 and markdown2.
-        Returns:
-            str: Rendered HTML email content.
-        """
-        if not self.queried_brief or not self.queried_brief.get("curated_content"):
-            logger.warning("No content available to format for email.")
-            self.formatted_email = ""
-            return ""
-
-        content = self.queried_brief.get("curated_content")
-
-        try:
-            content_html = markdown2.markdown(content)
-            template = self.jinja_env.get_template("card.html")
-            self.formatted_email = template.render(
-                title=self.title,
-                content_html=content_html,
-                footer_text=self.footer_text
-            )
-
-            logger.info(
-                f"Email rendered for brief ID {self.queried_brief.get('id')}")
-            return self.formatted_email
-
-        except Exception as e:
-            logger.error(f"Email formatting failed: {e}", exc_info=True)
-            self.formatted_email = ""
-            return ""
 
     def send_email(self, subject="Reddit Problem Report!"):
         """
-        Send the formatted email to the configured recipient using SMTP.
+        Format and send the brief as an HTML email to the configured recipient.
         Args:
             subject (str): Subject line for the email.
         """
-        if not self.formatted_email:
-            self._format_email()
+        if not self.queried_brief or not self.queried_brief.get("curated_content"):
+            logger.warning("No content available to format for email.")
+            return
+
+        content = self.queried_brief.get("curated_content")
+        brief_id = self.queried_brief.get("id")
+
+        self.formatted_email = format_email(
+            content=content,
+            jinja_env=self.jinja_env,
+            title=self.title,
+            footer_text=self.footer_text,
+            brief_id=brief_id,
+        )
 
         if not self.formatted_email:
             logger.warning("No data to email after formatting. Aborting send.")

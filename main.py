@@ -1,15 +1,15 @@
-from orchestrators.ingress_orchestrator import IngressOrchestrator
-from orchestrators.sentiment_orchestrator import SentimentOrchestrator
-from orchestrators.core_orchestrator import CoreOrchestrator
-from orchestrators.egress_orchestrator import EgressOrchestrator
-from config import settings
+from pipelines.ingress_pipeline import IngressPipeline
+from pipelines.sentiment_pipeline import SentimentPipeline
+from pipelines.core_pipeline import CorePipeline
+from pipelines.egress_pipeline import EgressPipeline
+from settings import settings
 
 if __name__ == "__main__":
-    ingress = IngressOrchestrator()
-    sentiment = SentimentOrchestrator()
-    core = CoreOrchestrator()
-    egress = EgressOrchestrator()
-    
+    ingress = IngressPipeline()
+    sentiment = SentimentPipeline()
+    core = CorePipeline()
+    egress = EgressPipeline()
+
     ingress.run()
     sentiment.run()
     core.run()

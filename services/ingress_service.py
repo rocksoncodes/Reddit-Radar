@@ -1,5 +1,5 @@
 from typing import Dict, List, Any
-from config import settings
+from settings import settings
 from utils.logger import logger
 from utils.helpers import get_posts_from_subreddit, get_comments_from_submission
 from clients.reddit_client import get_reddit_client

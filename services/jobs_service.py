@@ -1,10 +1,10 @@
-from orchestrators.ingress_orchestrator import IngressOrchestrator
-from orchestrators.sentiment_orchestrator import SentimentOrchestrator
-from orchestrators.core_orchestrator import CoreOrchestrator
-from orchestrators.egress_orchestrator import EgressOrchestrator
+from pipelines.ingress_pipeline import IngressPipeline
+from pipelines.sentiment_pipeline import SentimentPipeline
+from pipelines.core_pipeline import CorePipeline
+from pipelines.egress_pipeline import EgressPipeline
 from database.session import get_session
 from utils.logger import logger
-from config import settings
+from settings import settings
 
 from repositories.post_repository import PostRepository
 
@@ -35,15 +35,15 @@ class JobService:
 
     def run_all_pipelines(self):
         """
-        Runs the orchestrators synchronously in the correct order:
+        Runs the pipelines synchronously in the correct order:
         Ingress -> Sentiment -> Core -> Egress
         """
         logger.info("Starting full pipeline sequence")
-        
-        ingress = IngressOrchestrator()
-        sentiment = SentimentOrchestrator()
-        core = CoreOrchestrator()
-        egress = EgressOrchestrator()
+
+        ingress = IngressPipeline()
+        sentiment = SentimentPipeline()
+        core = CorePipeline()
+        egress = EgressPipeline()
 
         self.safe_run(ingress.run)()
         self.safe_run(sentiment.run)()

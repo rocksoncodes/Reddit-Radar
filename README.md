@@ -82,19 +82,18 @@ Reddit-PainPoint-Service/
 ├── agent.py                    # Background scheduler (APScheduler)
 ├── main.py                     # Manual entry point
 │
-├── orchestrators/              # Coordinate the data flow between services
-│   ├── ingress_orchestrator.py
-│   ├── sentiment_orchestrator.py
-│   ├── core_orchestrator.py
-│   └── egress_orchestrator.py
+├── pipelines/              # Coordinate the data flow between services
+│   ├── ingress_pipeline.py
+│   ├── sentiment_pipeline.py
+│   ├── core_pipeline.py
+│   └── egress_pipeline.py
 │
 ├── services/                   # Business logic
 │   ├── infisical_service.py    # Runtime secrets loading from Infisical
 │   ├── ingress_service.py      # Reddit data collection
-│   ├── reddit_service.py       # Reddit API interactions
+│   ├── reddit_service.py       # Scraping & storage pipeline coordinator
 │   ├── sentiment_service.py    # Sentiment analysis
 │   ├── core_service.py         # Curator Agent (Gemini)
-│   ├── storage_service.py      # Database interaction
 │   └── egress_service.py       # Email & Notion exporters
 │
 ├── repositories/               # Data access layer (SQLAlchemy)
@@ -107,23 +106,22 @@ Reddit-PainPoint-Service/
 │   ├── reddit_client.py
 │   └── gemini_client.py
 │
-├── handlers/                   # High-level handlers
-│   └── reddit_handler.py
-│
 ├── database/                   # Models and DB initialization
 │   └── models.py
 │
-├── config/
+├── settings/
 │   └── settings.py             # Settings & env variable mapping
 │
 └── utils/
     ├── logger.py               # Shared logger
-    └── helpers.py
+    └── helpers.py              # Shared utilities: serializers, Reddit fetchers,
+                                #   data integrity checks, text chunking,
+                                #   Notion block builders & email formatter
 ```
 
 ## 6. Secrets Management
 
-Secrets are loaded dynamically at startup using `InfisicalSecretsService`. When the app initializes, `config/settings.py` authenticates with Infisical and injects all project secrets into the environment before any constants are resolved.
+Secrets are loaded dynamically at startup using `InfisicalSecretsService`. When the app initializes, `settings/settings.py` authenticates with Infisical and injects all project secrets into the environment before any constants are resolved.
 
 The following secrets should be configured in your Infisical project:
 
@@ -150,12 +148,14 @@ The following secrets should be configured in your Infisical project:
 
 ## 8. Development Status
 
-- ✅ Reddit ingestion and data collection
-- ✅ Sentiment analysis pipeline
-- ✅ Gemini-based Curator Agent
-- ✅ Notion sync and email notifications
-- ✅ Repository pattern (data access layer)
-- ✅ Dynamic secrets loading via Infisical
+- Reddit ingestion and data collection
+- Sentiment analysis pipeline
+- Gemini-based Curator Agent
+- Notion sync and email notifications
+- Repository pattern (data access layer)
+- Dynamic secrets loading via Infisical
+- Storage logic consolidated into repositories
+- Egress helpers (`chunk_text`, `create_notion_blocks`, `format_email`) extracted to `utils/helpers.py`
 
 ## 9. Notes & Limitations
 
@@ -165,4 +165,4 @@ The following secrets should be configured in your Infisical project:
 
 ## 10. Project Wiki
 
-See [`project wiki/Home.md`](project%20wiki/Home.md) for extended rationale, architecture notes, and running notes.
+See [`project wiki/Home.md`](project%20wiki/Home.md) for extended rationale, architecture notes and running notes.

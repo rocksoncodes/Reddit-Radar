@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Set
 from sqlalchemy.orm import Session
 from database.models import Post, CuratedItem
 from utils.logger import logger
@@ -30,6 +30,22 @@ class PostRepository:
             self.session.add(post)
             count += 1
         return count
+
+
+    def store_posts(self, reddit_data: Dict, validated_ids: Set[str]) -> int:
+        """
+        Filter posts by validated submission IDs and persist them.
+        Args:
+            reddit_data (dict): Raw Reddit data containing a 'posts' list.
+            validated_ids (set): Set of submission IDs that passed integrity checks.
+        Returns:
+            int: Number of posts stored.
+        """
+        posts_to_store = []
+        for post in reddit_data.get("posts", []):
+            if post["submission_id"] in validated_ids:
+                posts_to_store.append(post)
+        return self.create_posts(posts_to_store)
 
 
     def get_posts_with_sentiments(self, limit: int = 10) -> List:

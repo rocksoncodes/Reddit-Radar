@@ -5,10 +5,10 @@ from datetime import datetime, timedelta
 from utils.logger import logger
 
 
-jobstores = {
+job_stores = {
     'default': SQLAlchemyJobStore(url='sqlite:///jobs.sqlite')
 }
-scheduler = BlockingScheduler(jobstores=jobstores)
+scheduler = BlockingScheduler(jobstores=job_stores)
 
 agent_job = JobService()
 
