@@ -60,8 +60,7 @@ class EgressService:
                 "curated_content": queried_brief.curated_content
             }
 
-            logger.info(
-                f"Successfully queried brief ID {queried_brief.id} from the database.")
+            logger.info(f"Queried brief ID {queried_brief.id}")
             self.queried_brief = query_result
             return query_result
 
@@ -118,7 +117,7 @@ class EgressService:
             )
 
             if response.get("request_id"):
-                logger.info("Notion page created successfully.")
+                logger.info("Notion page created")
             else:
                 logger.warning(
                     "Notion page creation response received but request_id missing.")

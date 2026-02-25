@@ -1,5 +1,4 @@
 from typing import Dict, Any
-from settings import settings
 from database import get_session
 from repositories.post_repository import PostRepository
 from repositories.comment_repository import CommentRepository
@@ -22,29 +21,28 @@ class RedditService:
         Returns:
             Dict[str, Any]: Dictionary containing posts, submission IDs, and comments.
         """
-        logger.info("=== Starting Reddit scraping pipeline ===")
-        logger.info("[PIPELINE] Step 1/3: Fetching posts")
-        posts = self.scraper.fetch_reddit_posts()
+        logger.info("Starting Reddit scraping")
+        logger.info("Fetching posts")
 
         if not posts:
             logger.warning("No posts were fetched. Exiting pipeline.")
             return {"posts": [], "submission_ids": [], "comments": []}
 
-        logger.info("[PIPELINE] Step 2/3: Extracting submission IDs")
+        logger.info("Extracting submission IDs")
         submission_ids = self.scraper.fetch_post_ids()
 
         if not submission_ids:
             logger.warning("No submission IDs extracted. Exiting pipeline.")
             return {"posts": posts, "submission_ids": [], "comments": []}
 
-        logger.info("[PIPELINE] Step 3/3: Fetching comments")
+        logger.info("Fetching comments")
         comments = self.scraper.fetch_reddit_comments()
 
         if not comments:
             logger.warning("No comments were fetched. Exiting pipeline.")
             return {"posts": posts, "submission_ids": submission_ids, "comments": []}
 
-        logger.info("=== Reddit scraping pipeline completed ===")
+        logger.info("Reddit scraping complete")
 
         return {
             "posts": posts,
@@ -58,14 +56,14 @@ class RedditService:
         Args:
             reddit_data (Dict): Dictionary containing posts and comments to store.
         """
-        logger.info("=== Starting Reddit storage pipeline ===")
+        logger.info("Starting Reddit storage")
 
         session = get_session()
         post_repo = PostRepository(session)
         comment_repo = CommentRepository(session)
 
         try:
-            logger.info("[PIPELINE] Step 1/2: Storing posts")
+            logger.info("Storing posts")
             validated_ids = ensure_data_integrity(session, reddit_data)
             stored_posts = post_repo.store_posts(reddit_data, validated_ids)
             session.commit()
@@ -73,20 +71,20 @@ class RedditService:
 
         except Exception as e:
             session.rollback()
-            logger.error(f"Unexpected error while storing posts: {e}", exc_info=True)
+            logger.error(f"Error storing posts: {e}", exc_info=True)
             return
 
         try:
-            logger.info("[PIPELINE] Step 2/2: Storing comments")
+            logger.info("Storing comments")
             stored_comments = comment_repo.store_comments(reddit_data)
             session.commit()
             logger.info(f"Stored {stored_comments} comments.")
 
         except Exception as e:
             session.rollback()
-            logger.error(f"Unexpected error while storing comments: {e}", exc_info=True)
+            logger.error(f"Error storing comments: {e}", exc_info=True)
 
         finally:
             session.close()
 
-        logger.info("=== Reddit storage pipeline completed ===")
+        logger.info("Reddit storage complete")

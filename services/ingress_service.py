@@ -52,7 +52,7 @@ class IngressService:
                 logger.error(f"Error fetching posts from r/{subreddit_name}: {e}", exc_info=True)
 
         self.posts = posts
-        logger.info(f"Completed fetching posts. Total collected: {len(posts)}")
+        logger.info(f"Collected {len(posts)} posts")
         return posts
 
 
@@ -98,5 +98,5 @@ class IngressService:
                 logger.error(f"Error fetching comments for submission {submission_id}: {e}", exc_info=True)
 
         self.comments = comments_collected
-        logger.info(f"Completed. Total comments collected: {len(comments_collected)}")
+        logger.info(f"Collected {len(comments_collected)} comments")
         return comments_collected

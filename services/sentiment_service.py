@@ -45,7 +45,7 @@ class SentimentService:
         """
         post_records = []
 
-        logger.info("Querying posts with comments from the database...")
+        logger.info("Querying posts with comments")
 
         try:
             posts = self.post_repo.get_all_posts()
@@ -58,9 +58,7 @@ class SentimentService:
 
                 post_records.append(serialize_post(post, comment_records))
 
-            logger.info(
-                f"Query complete. Retrieved {len(posts)} posts and {total_comments} comments in total."
-            )
+            logger.info(f"Retrieved {len(posts)} posts and {total_comments} comments")
 
             self.query_results = post_records
             return post_records
@@ -84,12 +82,10 @@ class SentimentService:
         post_sentiment_scores = []
 
         if not self.query_results:
-            logger.info(
-                "No extracted post with comments where found, calling query_posts_with_comments()...")
+            logger.info("Querying posts for analysis")
             self.query_posts_with_comments()
 
-        logger.info(
-            f"Starting sentiment analysis on {len(self.query_results)} post(s).")
+        logger.info(f"Analyzing sentiment for {len(self.query_results)} posts")
 
         try:
             for posts in self.query_results:
@@ -130,7 +126,7 @@ class SentimentService:
         Returns:
             List[Dict]: List of sentiment summaries for each post.
         """
-        logger.info("Starting sentiment summarization...")
+        logger.info("Summarizing sentiment")
 
         if not self.post_sentiment_scores:
             logger.info(
@@ -204,7 +200,7 @@ class SentimentService:
             return
 
         try:
-            logger.info("Storing post(s) sentiments in the database...")
+            logger.info("Storing sentiments")
 
             sentiments_to_store = []
             for post_sentiment_summary in sentiments:
@@ -220,7 +216,7 @@ class SentimentService:
             self.sentiment_repo.create_sentiments(sentiments_to_store)
             self.session.commit()
 
-            logger.info("Sentiment Storage Complete.")
+            logger.info("Sentiment storage complete")
 
         except Exception as e:
             logger.error(f"Error storing post sentiment(s) {e}", exc_info=True)

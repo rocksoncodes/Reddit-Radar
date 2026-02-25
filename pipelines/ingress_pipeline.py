@@ -16,7 +16,7 @@ class IngressPipeline:
         Executes the ingress pipeline: database initialization, data scraping and storage.
         """
         try:
-            logger.info("=== Starting Ingress pipeline ===")
+            logger.info("Ingress pipeline started")
             init_db()
 
             logger.info("Scraping data from Reddit...")
@@ -25,7 +25,7 @@ class IngressPipeline:
             logger.info("Storing scraped data...")
             self.reddit_service.run_reddit_storage(reddit_data)
 
-            logger.info("=== Ingress pipeline completed successfully ===")
+            logger.info("Sentiment pipeline complete")
             return True
 
         except Exception as e:
