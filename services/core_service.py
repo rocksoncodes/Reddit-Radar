@@ -1,7 +1,7 @@
 from typing import Dict, List
 from google.genai import errors
 from settings import settings
-from database.session import get_session
+from database import get_session
 from clients.gemini_client import initialize_gemini, provide_agent_tools
 from repositories.post_repository import PostRepository
 from repositories.sentiment_repository import SentimentRepository

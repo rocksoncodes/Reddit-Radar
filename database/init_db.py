@@ -1,5 +1,4 @@
-from database.base import Base
-from database.engine import database_engine
+from database import Base, database_engine
 from utils.logger import logger
 
 

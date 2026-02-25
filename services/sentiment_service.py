@@ -4,7 +4,7 @@ from repositories.sentiment_repository import SentimentRepository
 from typing import Dict, List
 from utils.helpers import serialize_post, get_comments_for_post
 from nltk.sentiment import SentimentIntensityAnalyzer
-from database.session import get_session
+from database import get_session
 from collections import Counter
 from utils.logger import logger
 

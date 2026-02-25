@@ -1,6 +1,6 @@
 from typing import Dict, Any
 from settings import settings
-from database.session import get_session
+from database import get_session
 from repositories.post_repository import PostRepository
 from repositories.comment_repository import CommentRepository
 from services.ingress_service import IngressService

@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, Text, ForeignKey, Boolean, JSON
 from sqlalchemy.orm import relationship
-from database.base import Base
+from database import Base
 
 
 class Post(Base):

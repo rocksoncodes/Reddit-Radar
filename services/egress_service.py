@@ -4,7 +4,7 @@ from email.message import EmailMessage
 from smtplib import SMTPAuthenticationError, SMTPConnectError
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from notion_client import APIErrorCode, APIResponseError, Client
-from database.session import get_session
+from database import get_session
 from utils.logger import logger
 from utils.helpers import chunk_text, create_notion_blocks, format_email
 from settings import settings
