@@ -19,7 +19,7 @@ class EgressPipeline:
         Executes the egress pipeline: query brief and deliver via chosen channels.
         """
         try:
-            logger.info("=== Starting Egress pipeline ===")
+            logger.info("Egress pipeline started")
             logger.info("Querying latest processed brief...")
             self.service.query_brief()
             send_by_channel(
@@ -29,7 +29,7 @@ class EgressPipeline:
                 email_only=self.email_only,
                 all_channels=self.all_channels,
             )
-            logger.info("=== Egress pipeline completed successfully ===")
+            logger.info("Egress pipeline complete")
             return True
 
         except Exception as e:

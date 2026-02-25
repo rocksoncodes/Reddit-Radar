@@ -5,7 +5,9 @@ from google.genai import types
 
 
 def initialize_gemini() -> genai.Client:
-
+    """
+    Initializes the Gemini client using the API key from environment variables.
+    """
     api_key = settings.GEMINI_API_KEY
 
     if not api_key:
@@ -25,6 +27,9 @@ def initialize_gemini() -> genai.Client:
 
 
 def provide_agent_tools(tools) -> types.GenerateContentConfig | None:
+    """
+    Provides the agent tools configuration.
+    """
     try:
         config = types.GenerateContentConfig(tools=tools)
         logger.info(

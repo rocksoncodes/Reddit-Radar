@@ -22,7 +22,7 @@ scheduler.add_job(
     replace_existing=True
 )
 
-# Schedule cleanup every 2 weeks
+# Schedule cleanup runs every 2 weeks
 scheduler.add_job(
     agent_job.safe_run(agent_job.cleanup_curated_data),
     trigger="interval",

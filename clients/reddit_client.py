@@ -7,7 +7,15 @@ _reddit_instance = None
 
 
 def _validate_reddit_secrets(reddit_secrets: dict) -> bool:
+    """
+    Validates the Reddit secrets.
 
+    Args:
+        reddit_secrets (dict): Dictionary containing Reddit secrets.
+
+    Returns:
+        bool: True if the Reddit secrets are valid, False otherwise.
+    """
     missing_keys = []
     found_keys = []
 
@@ -32,7 +40,12 @@ def _validate_reddit_secrets(reddit_secrets: dict) -> bool:
 
 
 def _create_reddit_client() -> praw.Reddit | None:
+    """
+    Creates a new Reddit client instance.
 
+    Returns:
+        praw.Reddit | None: The Reddit client instance.
+    """
     load_dotenv()
 
     client_id = settings.REDDIT_CLIENT_ID
@@ -66,7 +79,12 @@ def _create_reddit_client() -> praw.Reddit | None:
 
 
 def get_reddit_client() -> praw.Reddit | None:
+    """
+    Returns the Reddit client instance.
 
+    Returns:
+        praw.Reddit | None: The Reddit client instance.
+    """
     global _reddit_instance
 
     if _reddit_instance is None:

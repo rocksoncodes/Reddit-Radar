@@ -8,7 +8,7 @@ load_dotenv()
 class InfisicalSecretsService:
     """
     Handles fetching and loading secrets (API keys, passwords, etc.)
-    from Infisical — a cloud-based secret's manager.
+    from Infisical a cloud-based secret's manager.
     """
     
     def __init__(self):

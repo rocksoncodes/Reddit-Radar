@@ -1,7 +1,7 @@
 from typing import Dict, List
 from google.genai import errors
 from settings import settings
-from database.session import get_session
+from database import get_session
 from clients.gemini_client import initialize_gemini, provide_agent_tools
 from repositories.post_repository import PostRepository
 from repositories.sentiment_repository import SentimentRepository
@@ -33,7 +33,7 @@ class CoreService:
         """
         post_records = []
 
-        logger.info("Querying posts with sentiments from the database...")
+        logger.info("Querying posts with sentiments")
 
         try:
             posts_with_sentiments = self.post_repo.get_posts_with_sentiments(limit=10)
@@ -66,7 +66,7 @@ class CoreService:
             str or dict: Curator agent response text or error information.
         """
         try:
-            logger.info("Executing Curator Agent...")
+            logger.info("Executing Curator Agent")
             response = self.agent.models.generate_content(
                 model=settings.AGENT_MODEL,
                 contents=settings.SCOUT_OBJECTIVE,
@@ -74,7 +74,7 @@ class CoreService:
                     tools=[self.query_posts_with_sentiments])
             )
 
-            logger.info("Curator Agent executed successfully..")
+            logger.info("Curator Agent complete")
             curator_response = response.text
 
             self.curator_agent_response = curator_response
@@ -102,7 +102,7 @@ class CoreService:
         Store the curator agent's response in the ProcessedBriefs table in the database.
         """
         if not self.curator_agent_response:
-            logger.info("No curator agent response found. Running agent...")
+            logger.info("Running agent for response")
             try:
                 self.execute_curator_agent()
             except Exception as e:
@@ -130,8 +130,7 @@ class CoreService:
                         self.post_repo.add_curated_item(sub_id)
 
                     self.session.commit()
-                    logger.info(
-                        "Curator response stored and items marked as curated.")
+                    logger.info("Curator response stored")
             else:
                 logger.warning("Curated content is None. Skipping DB insert.")
 

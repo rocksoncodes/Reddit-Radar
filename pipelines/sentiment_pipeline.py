@@ -14,7 +14,7 @@ class SentimentPipeline:
         Executes the sentiment analysis pipeline: query, analyze, summarize, and store.
         """
         try:
-            logger.info("=== Starting Sentiment Analysis pipeline ===")
+            logger.info("Sentiment pipeline started")
 
             logger.info("Querying posts with comments...")
             self.service.query_posts_with_comments()
@@ -28,7 +28,7 @@ class SentimentPipeline:
             logger.info("Storing sentiment results...")
             self.service.store_sentiment_results()
 
-            logger.info("=== Sentiment Analysis pipeline completed successfully ===")
+            logger.info("Sentiment pipeline complete")
             return True
 
         except Exception as e:

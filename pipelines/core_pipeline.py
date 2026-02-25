@@ -14,7 +14,7 @@ class CorePipeline:
         Executes the core curation pipeline: execute agent and store response.
         """
         try:
-            logger.info("=== Starting Core Curation pipeline ===")
+            logger.info("Core Curation pipeline started")
 
             logger.info("Executing curator agent...")
             self.service.execute_curator_agent()
@@ -22,7 +22,7 @@ class CorePipeline:
             logger.info("Storing curator response...")
             self.service.store_curator_response()
 
-            logger.info("=== Core Curation pipeline completed successfully ===")
+            logger.info("Core Curation pipeline complete")
             return True
 
         except Exception as e:

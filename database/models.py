@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, Text, ForeignKey, Boolean, JSON
 from sqlalchemy.orm import relationship
-from database.base import Base
+from database import Base
 
 
 class Post(Base):
@@ -15,7 +15,6 @@ class Post(Base):
     score = Column(Integer)
     number_of_comments = Column(Integer)
     post_url = Column(Text)
-    is_processed = Column(Boolean, default=False)
     is_curated = Column(Boolean, default=False)
 
     comments = relationship(
