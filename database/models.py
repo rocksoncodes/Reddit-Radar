@@ -15,7 +15,6 @@ class Post(Base):
     score = Column(Integer)
     number_of_comments = Column(Integer)
     post_url = Column(Text)
-    is_processed = Column(Boolean, default=False)
     is_curated = Column(Boolean, default=False)
 
     comments = relationship(
